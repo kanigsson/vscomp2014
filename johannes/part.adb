@@ -1,5 +1,3 @@
-with Ada.Text_IO; use Ada.Text_IO;
-
 package body Part
 with SPARK_Mode
 is
@@ -11,10 +9,11 @@ is
           (for all I in X'Range =>
                (if I /= A and then I /= B then X (I) = X'Old (I))));
 
-   procedure Split_Partition (A : in out Set;
-                              X : Set;
-                              Result : in out Partition;
-                              Part_Count : in out Natural);
+   procedure Split_Partition
+     (A          : in out Set;
+      X          : Set;
+      Result     : in out Partition;
+      Part_Count : in out Natural);
 
    ----------
    -- Swap --
