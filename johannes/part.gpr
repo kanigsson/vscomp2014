@@ -1,4 +1,7 @@
 project Part is
    for Object_Dir use "obj";
    for Main use ("main.adb");
+   package Compiler is
+      for Switches ("Ada") use ("-gnata", "-g");
+   end Compiler;
 end Part;

@@ -1,24 +1,24 @@
+with Ada.Text_IO; use Ada.Text_IO;
+
 package body Part is
 
-   function Mem (X : Set; Elt : Integer) return Boolean is
-     (for some I in X'Range => Elt = X (I));
-
-   procedure Swap (X : in out Set; A, B : Valid_Range)
-     with Post =>
-       (X (A) = X'Old (B) and then X (B) = X'Old (A) and then
+   procedure Swap (X : in out Set; A, B : Positive)
+     with Pre => A in X'Range and B in X'Range,
+     Post =>
+     (X (A) = X'Old (B) and then X (B) = X'Old (A) and then
           (for all I in X'Range =>
-                 (if I /= A and then I /= B then X (I) = X'Old (I))));
+               (if I /= A and then I /= B then X (I) = X'Old (I))));
 
-   procedure Split_Partition (A : in out Subset;
+   procedure Split_Partition (A : in out Set;
                               X : Set;
                               Result : in out Partition;
-                              Part_Count : in out Range_And_Zero);
+                              Part_Count : in out Natural);
 
    ----------
    -- Swap --
    ----------
 
-   procedure Swap (X : in out Set; A, B : Valid_Range) is
+   procedure Swap (X : in out Set; A, B : Positive) is
       Tmp : Integer := X (A);
    begin
       X (A) := X (B);
@@ -26,22 +26,24 @@ package body Part is
    end Swap;
 
 
-   procedure Split_Partition (A : in out Subset;
+   procedure Split_Partition (A : in out Set;
                               X : Set;
                               Result : in out Partition;
-                              Part_Count : in out Range_And_Zero) is
-      First : Valid_Range := A'First;
-      Last  : Valid_Range := A'Last;
+                              Part_Count : in out Natural) is
+      First : Positive := A'First;
+      Last  : Positive := A'Last;
    begin
-      First := A'First;
-      Last := A'Last;
       while First <= Last loop
+         Put_Line (First'Img & " and " & Last'Img);
          if Mem (X, A (First)) then
+            Put_Line ("in");
             First := First + 1;
          else
+            Put_Line ("swap");
             Swap (A, First, Last);
             Last := Last - 1;
          end if;
+         pragma Loop_Invariant (Same_Set (A'Loop_Entry, A));
       end loop;
       Part_Count := Part_Count + 1;
       Result (Part_Count) := A'First;
@@ -58,25 +60,20 @@ package body Part is
    ------------
 
    function Refine (A : in out Set; P : Partition; X : Set) return Partition is
-      Last_Index : Valid_Range := 1;
-      Result     : Partition;
-      Cur_Part_Cnt : Range_And_Zero := 1;
+      Last_Index : Positive := A'First;
+      Result     : Partition (A'Range);
+      Cur_Part_Cnt : Natural := 0;
    begin
       for PI in P'Range loop
-         --  we have in fact found all partitions already
-         if P (PI) = 0 then
-            exit;
-         end if;
-
-         --  we now act split the current partition
-
          Split_Partition (A (Last_Index .. P (PI) - 1),
                           X,
                           Result,
                           Cur_Part_Cnt);
+         Last_Index := P (PI);
 
       end loop;
-      return Result;
+      Split_Partition (A (Last_Index .. A'Last), X, Result, Cur_Part_Cnt);
+      return Result (1 .. Cur_Part_Cnt);
    end Refine;
 
 end Part;
