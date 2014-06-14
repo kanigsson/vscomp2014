@@ -28,6 +28,6 @@ package BHeap with SPARK_Mode is
 
    function Reverse_Node (Node : Node_Key; Sibl : Node_Key) return Node_Key;
 
-   procedure Extract_Min (Heap : Binomial_Heap; Min : out Binomial_Heap_Node);
+   procedure Extract_Min (Heap : in out Binomial_Heap; Min : out Binomial_Heap_Node);
 
 end BHeap;
