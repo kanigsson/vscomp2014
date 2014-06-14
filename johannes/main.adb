@@ -36,12 +36,11 @@ procedure Main is
    X : Set :=
      (1 => 11, 2 => 22, 3 => 44);
    Part : Partition := (1 => 4);
+   NP : Partition (1 .. 5);
+   Count : Natural;
 begin
    Print_Set (A);
-   declare
-      P : Partition := Refine (A, Part, X);
-   begin
-      Print_Set (A);
-      Print_Part (P);
-   end;
+   Refine (A, Part, X, NP, Count);
+   Print_Set (A);
+   Print_Part (NP (1 .. Count));
 end Main;

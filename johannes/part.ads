@@ -1,4 +1,6 @@
-package Part is
+package Part
+with SPARK_Mode
+is
 
    type Set is array (Positive range <>) of Integer;
 
@@ -22,9 +24,9 @@ package Part is
 
    function Is_Partition (S : Set; P : Partition) return Boolean
      is
-     (P'Length < S'Length and then
-        Ascending (P) and then
-            (for all I in P'Range => P (I) in S'Range));
+     (P'Length < S'Length
+      and then Ascending (P)
+      and then (for all I in P'Range => P (I) in S'Range));
 
    function Disjoint_Or_Subset (A, B : Set) return Boolean is
      (Disjoint (A, B) or else Subset (A, B));
@@ -36,13 +38,21 @@ package Part is
      (if I = P'First then A (A'First .. P (I) - 1)
       else A (P (I - 1) .. P (I) - 1));
 
-   function Refine (A : in out Set; P : Partition; X : Set) return Partition
-     with Pre => Subset (X, A) and then Is_Partition (A, P),
+   procedure Refine
+     (A        : in out Set;
+      P        : Partition;
+      X        : Set;
+      NP       : out Partition;
+      Num_Part : out Natural)
+     with Pre =>
+       Subset (X, A) and then Is_Partition (A, P)
+       and then A'Length - 1 = NP'Length,
      Post =>
-       Is_Partition (A, Refine'Result)
-     and then Same_Set (A'Old, A)
-     and then
-       (for all I in Refine'Result'Range =>
-          Disjoint_Or_Subset (Get_Part (A, Refine'Result, I), X));
+       Is_Partition (A, NP (NP'First .. NP'First + Num_Part - 1))
+       and then Same_Set (A'Old, A)
+       and then
+         (for all I in NP'First .. NP'First + Num_Part - 1 =>
+            Disjoint_Or_Subset
+              (Get_Part (A, NP (NP'First .. NP'First + Num_Part - 1), I), X));
 
 end Part;
