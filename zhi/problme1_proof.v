@@ -448,7 +448,7 @@ Section Auxiliary2.
         Index_Decreasing_True ((i', n') :: ls) ->
         Index_Decreasing_True ((i, n) :: (i', n') :: ls).
   
-  Lemma Index_Decreasing_Reserved: forall a stacks stacks',
+  Lemma Index_Decreasing_Reserved: forall stacks a stacks',
     Insert_Rule a stacks stacks' -> (*  put element a into the stacks according to Patience Solitaire rule *)
     Stacks_Indexes_Lt stacks (Index_Of a) -> (* index of a should be greater than indexes of elements on stacks *)
     (forall j, j >= 0 -> 
@@ -458,10 +458,40 @@ Section Auxiliary2.
                i + 1 <= (length stacks') ->
                Index_Decreasing_True (nth i stacks' default)).
 Proof.
-  admit.
+  intros stacks.
+  induction stacks; smack.
+- inversion H; smack.
+  assert (i = 0); smack.
+  constructor.
+- inversion H; subst.
+  specialize (H1 i);
+  destruct i; smack.
+  inversion H0; subst. inversion H6; subst.
+  constructor; smack.
+  
+  assert (HZ1: forall j : nat,
+       j >= 0 ->
+       j + 1 <= S (length stacks) ->
+       Index_Decreasing_True
+         match j with
+         | 0 => (i', n') :: ns
+         | S m => nth m stacks default
+         end); auto.
+  specialize (H1 i);
+  destruct i; smack.
+  specialize (Stacks_Indexes_Lt_Subset _ _ _ H0); smack.
+  specialize (IHstacks (a1, b) stacks'0 H11 H6).
+  apply IHstacks; smack.
+  specialize (HZ1 (j + 1)).
+  assert(HA1: j + 1 >= 0). smack.
+  assert(HA2: j + 1 + 1 <= S (length stacks)). smack.
+  specialize (HZ1 HA1 HA2).
+  assert (HA3: j + 1 = S j). smack.
+  rewrite HA3 in HZ1. auto.
 Qed.
  
 End Auxiliary2.
+
 
 
 Lemma lemma2_helper: forall cards i card InitialStacks ResultStacks,
