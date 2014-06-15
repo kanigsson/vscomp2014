@@ -2,19 +2,14 @@ Require Export ZArith.
 Require Export Coq.Arith.Compare_dec.
 Require Export Coq.Lists.List.
 Require Export X_SparkTactics.
-(* Require Export Coq.Bool.Bool. *)
 
-(**********************************
+(*****************************************
 
    Problem 1: Patience Solitaire
    
-   Proof by Zhi Zhang
+   Proof by Zhi Zhang @ zhangzhi@ksu.edu
 
- **********************************)
-
-Print nat_compare.
-Print leb.
-
+ *****************************************)
 
 Definition Index := nat.
 (* for each element, we also record its index, which is its original position in
@@ -29,7 +24,7 @@ Definition Value_Of (e: Index * nat) := (snd e).
 
 (**********************************
 
-       Relational Version
+       Relational Semantics
 
  **********************************)
 
@@ -67,23 +62,6 @@ Require Import Coq.Init.Datatypes.
 Definition default: Stack := nil.
 
 Section Auxiliary1.
-  (* to make sure that the cards are in order according to their index *)  
-  (*
-  Fixpoint Index_Increasing (cards: list (Index * nat)) : Prop :=
-    match cards with
-    | nil => True
-    | ((i, n) :: cards') =>
-        match cards' with
-        | nil => True
-        | ((i', n') :: cards'') =>
-          if leb i' i then
-            False
-          else
-            Index_Increasing cards' 
-
-        end
-    end.
-  *)
 
   Inductive Index_Increasing_True: list (Index * nat) -> Prop :=
     | Index_Inc1:
@@ -227,6 +205,7 @@ Section Auxiliary1.
   Qed.
 
 
+(*
   Function Append (stacks: Stacks) (a: (Index * nat)): Stacks :=
     match stacks with
     | (stack :: stacks') =>
@@ -241,7 +220,7 @@ Section Auxiliary1.
     intros.
     induction H; smack.
   Qed.
-
+*)
 
   Lemma Precede_Reserved_Help1: forall i n stacks stacks1 i0 n0 stack0,
     Insert_Rule (i, n) stacks stacks1 ->
@@ -265,7 +244,7 @@ Section Auxiliary1.
      a into the stack according to Patience Solitaire rules, then the result
      stack' should also reserve the "Precede" property.
   *)
-  Lemma Precede_Reserved: forall a stacks stacks',
+  Lemma Precede_Reserved: forall stacks a stacks',
     Insert_Rule a stacks stacks' -> (*  put element a into the stacks according to Patience Solitaire rule *)
     Stacks_Indexes_Lt stacks (Index_Of a) -> (* index of a should be greater than indexes of elements on stacks *)
     (forall j, j >= 1 -> j <= ((length stacks) - 1) -> 
@@ -273,98 +252,92 @@ Section Auxiliary1.
     (forall i, i >= 1 -> i <= ((length stacks') - 1) ->
                Precede (nth (i - 1) stacks' default) (nth i stacks' default)).
   Proof.
-(*
-    intros. 
-    destruct H; smack.
-    specialize (H1 i H2 H3).
+    intros stacks.
+    induction stacks; smack.
+  - inversion H; smack.
+  - inversion H; subst.
+    specialize (H1 i).
     destruct i; smack.
     destruct i; smack.
     apply Add_Reserved; auto.
-    specialize (Insert_Rule_Property (i0, n) stacks stacks' H5).
-    smack.
-    rewrite H6 in *.
-    specialize (H1 i H2 H3).
-    destruct i; smack.
-    destruct i; smack.
-    admit.
-    admit. 
-*)
-(*
-    intros a stacks stacks' i H. revert i.
-    induction H.
-  - smack.
-    specialize (H1 i0 H2 H3).
-    destruct i0; smack.
-    destruct i0; smack.
-    apply Add_Reserved; auto.
-  - intros.
-    specialize (Insert_Rule_Property (i, n) stacks stacks' H1).
-    intros.
-    destruct H5. 
-    assert (HA1: length (stack :: stacks') = (length stacks') + 1).
-    apply Length_Inc1.
-    rewrite -> HA1 in *.
-    rewrite H5 in *.
-    
-    specialize (H2 i0 H3 H4).
-    destruct i0; smack.
-    destruct i0; smack.    
-*)    
 
-(*
-    intros a stacks stacks' H.
-    induction H; smack.
-  - specialize (H2 i0 H3 H4).
-    destruct i0; smack.
-    destruct i0; smack.
-    apply Add_Reserved; auto.
-  - specialize (Insert_Rule_Property (i, n) stacks stacks' H1).
-    smack.
-    rewrite H6 in *.    
-    specialize (H3 i0 H4 H5).
-    destruct i0; smack.
-    destruct i0; smack.
-    + specialize (Stacks_Indexes_Lt_Subset _ _ _ H2); smack.
-      specialize (Stack_Indexes_Lt_Subset _ _ _ _ H7); smack.
-      apply Precede_Reserved_Help1 with (i := i) (n := n) (stacks := stacks);
-      smack.
-      specialize (leb_complete_conv _ _ H0).
-      smack.
-    + 
-      assert(HA: (forall j : nat,
-                   j >= 1 ->
-                   j <= length stacks - 1 ->
-                   Precede (nth (j - 1) stacks default)
-                     (nth j stacks default))).
-      
-      
-      
-      remember (S i0) as v.
-      assert(i0 = v -1) as HA1. omega.
-      rewrite HA1 in *.
-      assert (HA2: Stacks_Indexes_Lt stacks i).
-      specialize (Stacks_Indexes_Lt_Subset _ _ _ H2); smack.      
-      specialize (IHInsert_Rule v HA2).
-      
-      assert (HA3: v >= 1). admit.      
-      assert (HA4: v >= 1). admit.
-      
-      
-      apply IHInsert_Rule; smack.
-      specialize (Stacks_Indexes_Lt_Subset _ _ _ H2); smack.
-      destruct v; smack.
-      remember (S v) as k.
-      assert(v - 0 = k - 1) as HA1. omega.
-      rewrite HA1 in H2.
-      assert (k >= 1 /\ k <= length stacks - 1). omega.
-      inversion H8.
-      admit.
-    + admit.
+    assert (HZ1: forall j : nat,
+       j >= 1 ->
+       j <= length stacks - 0 ->
+       Precede
+         match j - 1 with
+         | 0 => (i', n') :: ns
+         | S m => nth m stacks default
+         end
+         match j with
+         | 0 => (i', n') :: ns
+         | S m => nth m stacks default
+         end); auto.
+
+    specialize (H1 i).
+    destruct i; smack.
+    destruct i; smack.
+    inversion H0; subst.
+    inversion H6; subst.
+    specialize (leb_complete_conv _ _ H10). intros HA1. 
+    destruct stacks.
+    inversion H11; subst.
+    constructor.
+    exists i', n'; smack.
+    constructor.
+    assert(HA2: 1 <= length (s :: stacks) - 0); smack.
+    
+    assert (HA3: a1 > i'); smack.
+    assert (HA4: b > n'); smack.
+    assert (HA5: Precede ((i', n') :: ns)  (nth 0 (s :: stacks) default)); smack.
+    specialize (Precede_Reserved_Help1 _ _ _ _ _ _ _ H11 HA3 HA4 HA5); auto.
+
+    
+    inversion H0; subst.
+    specialize (IHstacks _ _ H11 H8).
+    remember (S i) as I.
+    assert(i = I -1) as HA1. omega.
+    rewrite HA1 in *.
+    apply IHstacks; smack.
+    clear IHstacks.
+
+    assert (HZ2: forall j : nat,
+        j >= 1 ->
+        j <= length stacks - 0 ->
+        Precede
+          match j - 1 with
+          | 0 => (i', n') :: ns
+          | S m => nth m stacks default
+          end
+          match j with
+          | 0 => (i', n') :: ns
+          | S m => nth m stacks default
+          end); auto.
+    specialize (HZ2 j H1).
+    destruct j. inversion H1.
+    destruct j. simpl in *.
+    assert (HA4: 2 >= 1); auto.
+    assert (HA5: 2 <= length stacks - 0). omega.
+    specialize (HZ1 _ HA4 HA5). 
+    auto.
+(*    
+    assert (HA2: S (S j) <= length stacks - 0). omega.
+    specialize (HZ2 HA2).
+    simpl in HZ2.
 *)
-    admit.
+    remember (S (S j)) as J.
+    assert (HA2: (S J) >= 1); auto.
+    assert (HA3: (S J) <= length stacks - 0). omega.
+    specialize (HZ1 _ HA2 HA3).
+    simpl in HZ1.
+    destruct J.
+    inversion HeqJ.
+    assert (HA4: S J - 1 = J). omega.
+    rewrite HA4.
+    simpl in HZ1. 
+    auto.
   Qed.
 
- 
 End Auxiliary1.
 
 
