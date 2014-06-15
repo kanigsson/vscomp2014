@@ -57,19 +57,16 @@ Inductive PatienceSolitaire_Rule: list (Index * nat) -> Stacks -> Stacks -> Prop
 
 
 
-
-
-
-
-
-
+(********************************************************************************
+                     To Prove The Lemma1
+********************************************************************************)
 
 
 Require Import Coq.Init.Datatypes.
 
 Definition default: Stack := nil.
 
-Section Auxiliary.
+Section Auxiliary1.
   (* to make sure that the cards are in order according to their index *)  
   (*
   Fixpoint Index_Increasing (cards: list (Index * nat)) : Prop :=
@@ -368,7 +365,7 @@ Section Auxiliary.
   Qed.
 
  
-End Auxiliary.
+End Auxiliary1.
 
 
 
@@ -431,16 +428,101 @@ Qed.
 
 
 (********************************************************************************
+                     To Prove The Lemma2
+********************************************************************************)
 
+Section Auxiliary2.
+  (* this will be used to show that: for each stack of the resulting stacks 
+     produced by Patience Solitaire game, its indexes are in decreasing order,
+     which is used to prove the lemma2 that: it's impossible to contain two 
+     sequence elements σ(i) and σ(j) from the same stack and they precede one 
+     another;
+  *)
+  Inductive Index_Decreasing_True: list (Index * nat) -> Prop :=
+    | Index_Dec1:
+        Index_Decreasing_True nil 
+    | Index_Dec2: forall i n,
+        Index_Decreasing_True ((i, n) :: nil) 
+    | Index_Dec3: forall i i' n' ls n,
+        i > i' ->
+        Index_Decreasing_True ((i', n') :: ls) ->
+        Index_Decreasing_True ((i, n) :: (i', n') :: ls).
+  
+  Lemma Index_Decreasing_Reserved: forall a stacks stacks',
+    Insert_Rule a stacks stacks' -> (*  put element a into the stacks according to Patience Solitaire rule *)
+    Stacks_Indexes_Lt stacks (Index_Of a) -> (* index of a should be greater than indexes of elements on stacks *)
+    (forall j, j >= 0 -> 
+               j + 1 <= (length stacks) -> 
+               Index_Decreasing_True (nth j stacks default)) ->  
+    (forall i, i >= 0 -> 
+               i + 1 <= (length stacks') ->
+               Index_Decreasing_True (nth i stacks' default)).
+Proof.
+  admit.
+Qed.
+ 
+End Auxiliary2.
+
+
+Lemma lemma2_helper: forall cards i card InitialStacks ResultStacks,
+  PatienceSolitaire_Rule ((i, card) :: cards) InitialStacks ResultStacks ->
+  Index_Increasing_True ((i, card) :: cards) ->
+  Stacks_Indexes_Lt InitialStacks i ->
+  (* requirement for the initial stack *)
+  (forall j, j >= 0 -> 
+             j + 1 <= (length InitialStacks) -> (* j <= length InitialStacks -1, which will not work when InitialStacks is emtpy *)
+             Index_Decreasing_True (nth j InitialStacks default)) ->
+  (forall i, i >= 0 -> 
+             i + 1 <= length ResultStacks ->
+             Index_Decreasing_True (nth i ResultStacks default)).
+Proof.
+  induction cards.
+- intros.
+  inversion H; subst.
+  inversion H10; subst.
+  specialize (Index_Decreasing_Reserved _ _ _ H7 H1 H2).
+  smack.
+- intros.
+  inversion H; subst.
+  specialize (Index_Increasing_True_Subset _ _ H0); smack.
+  destruct a.
+  inversion H0; subst.
+  specialize (Stacks_Indexes_Lt_Trans _ _ _ _ _ H7 H1 H9).
+  intros HZ1.
+  specialize (IHcards _ _ _ _ H10 H5 HZ1).
+  apply IHcards; clear IHcards; smack.
+  specialize (Index_Decreasing_Reserved _ _ _ H7 H1 H2); smack.
+Qed.
+
+
+(********************************************************************************
+  <Lemma 2>
+  
   If there is a longer increasing subsequence, by the Pigeonhole Principle, it 
   must contain two sequence elements σ(i) and σ(j) from the same stack, but such 
   elements cannot precede one another.
 
+  the following lemma2 shows that: for each stack of the resulting ResultStacks 
+  produced by Patience Solitaire game, its indexes are in decreasing order, which 
+  demonstrates that: it's impossible to contain two sequence elements σ(i) and σ(j) 
+  from the same stack and they precede one another;
+
  ********************************************************************************)
 
-Lemma lemma2:
-
-.
-
-
+Lemma lemma2: forall cards ResultStacks,
+  PatienceSolitaire_Rule cards EmptyStacks ResultStacks ->
+  Index_Increasing_True cards ->
+  (forall i, i >= 0 -> 
+             i + 1 <= length ResultStacks -> (* i <= length ResultStacks -1, which will not work when ResultStacks is emtpy *)
+             Index_Decreasing_True (nth i ResultStacks default)).
+Proof.
+  intros.
+  destruct cards.
+- inversion H; subst.
+  smack.
+- destruct p.
+  apply lemma2_helper with (cards := cards) (i := i0) (card := n) (InitialStacks := EmptyStacks);
+  smack.
+  constructor.  
+Qed.
 
