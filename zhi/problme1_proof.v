@@ -320,11 +320,7 @@ Section Auxiliary1.
     assert (HA5: 2 <= length stacks - 0). omega.
     specialize (HZ1 _ HA4 HA5). 
     auto.
-(*    
-    assert (HA2: S (S j) <= length stacks - 0). omega.
-    specialize (HZ2 HA2).
-    simpl in HZ2.
-*)
+
     remember (S (S j)) as J.
     assert (HA2: (S J) >= 1); auto.
     assert (HA3: (S J) <= length stacks - 0). omega.
