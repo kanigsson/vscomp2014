@@ -469,7 +469,7 @@ Lemma lemma2_helper: forall cards i card InitialStacks ResultStacks,
   Stacks_Indexes_Lt InitialStacks i ->
   (* requirement for the initial stack *)
   (forall j, j >= 0 -> 
-             j + 1 <= (length InitialStacks) -> (* j <= length InitialStacks -1, which will not work when InitialStacks is emtpy *)
+             j + 1 <= (length InitialStacks) ->
              Index_Decreasing_True (nth j InitialStacks default)) ->
   (forall i, i >= 0 -> 
              i + 1 <= length ResultStacks ->
@@ -512,7 +512,7 @@ Lemma lemma2: forall cards ResultStacks,
   PatienceSolitaire_Rule cards EmptyStacks ResultStacks ->
   Index_Increasing_True cards ->
   (forall i, i >= 0 -> 
-             i + 1 <= length ResultStacks -> (* i <= length ResultStacks -1, which will not work when ResultStacks is emtpy *)
+             i + 1 <= length ResultStacks ->
              Index_Decreasing_True (nth i ResultStacks default)).
 Proof.
   intros.
